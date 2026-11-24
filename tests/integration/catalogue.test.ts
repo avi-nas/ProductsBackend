@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import { createApp } from "../../src/app.js";
 import { AppError } from "../../src/errors.js";
 import { CatalogueService } from "../../src/services/catalogue-service.js";
+import { EnquiryService } from "../../src/services/enquiry-service.js";
+import { FakeEmailProvider } from "../fakes/fake-email-provider.js";
 import { FakeProductProvider } from "../fakes/fake-product-provider.js";
 import { product } from "../fixtures/products.js";
 
@@ -19,6 +21,7 @@ const products = [
 function appWith(provider = new FakeProductProvider(products)) {
   return createApp({
     catalogueService: new CatalogueService(provider, [5, 2, 1, 6, 3]),
+    enquiryService: new EnquiryService(provider, new FakeEmailProvider()),
   });
 }
 

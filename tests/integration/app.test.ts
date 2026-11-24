@@ -3,11 +3,15 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../../src/app.js";
 import { CatalogueService } from "../../src/services/catalogue-service.js";
+import { EnquiryService } from "../../src/services/enquiry-service.js";
+import { FakeEmailProvider } from "../fakes/fake-email-provider.js";
 import { FakeProductProvider } from "../fakes/fake-product-provider.js";
 
 describe("application foundation", () => {
+  const productProvider = new FakeProductProvider([]);
   const app = createApp({
-    catalogueService: new CatalogueService(new FakeProductProvider([]), [1, 2, 3, 4, 5]),
+    catalogueService: new CatalogueService(productProvider, [1, 2, 3, 4, 5]),
+    enquiryService: new EnquiryService(productProvider, new FakeEmailProvider()),
   });
 
   it("reports health without calling external dependencies", async () => {

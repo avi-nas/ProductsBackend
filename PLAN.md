@@ -103,8 +103,8 @@ Target roughly 60–65 minutes for the backend, leaving about 65 minutes for iOS
 
 ## Testing strategy
 
-- **Unit:** provider mapping and failure handling (including absent/malformed rating), configured featured ordering, search matching, deterministic ranking/category partitioning, and later enquiry composition using fake ports.
-- **Integration with Supertest:** verify the catalogue paths: exactly five configured featured products; category listing and same-category top-rated/additional products; search matches, validation, and empty results; product detail success/not-found; injected provider failures; and the common error envelope. Enquiry coverage is added with its implementation. No live Fake Store or SMTP calls in the automated suite.
+- **Unit:** provider mapping and failure handling (including absent/malformed rating), configured featured ordering, search matching, deterministic ranking/category partitioning, enquiry composition, and SMTP acceptance/error mapping using fake ports.
+- **Integration with Supertest:** verify the catalogue paths plus enquiry success, validation, product-not-found, and email-delivery failure through injected providers and the common error envelope. No live Fake Store or SMTP calls in the automated suite.
 - **Manual smoke test:** run Mailpit locally, submit one enquiry, and inspect the message in its web UI; optionally verify the real product adapter once.
 - Tests must be deterministic, restore mocks, and cover behavior rather than private implementation details.
 
