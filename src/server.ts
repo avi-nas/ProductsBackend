@@ -1,8 +1,15 @@
+import { FakeStoreProductProvider } from "./adapters/fake-store-product-provider.js";
 import { createApp } from "./app.js";
 import { loadConfig } from "./config.js";
+import { CatalogueService } from "./services/catalogue-service.js";
 
 const config = loadConfig();
-const app = createApp();
+const productProvider = new FakeStoreProductProvider({
+  baseUrl: config.fakeStoreBaseUrl,
+  timeoutMs: config.fakeStoreTimeoutMs,
+});
+const catalogueService = new CatalogueService(productProvider, config.featuredProductIds);
+const app = createApp({ catalogueService });
 
 const server = app.listen(config.port, config.host, () => {
   console.info(`ProductsBackend listening at http://${config.host}:${config.port}`);

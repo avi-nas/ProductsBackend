@@ -22,6 +22,7 @@ function environmentFile(
     PORT: "3000",
     FAKE_STORE_BASE_URL: "https://fakestoreapi.com",
     FAKE_STORE_TIMEOUT_MS: "5000",
+    FEATURED_PRODUCT_IDS: "1,2,3,4,5",
     SMTP_HOST: "127.0.0.1",
     SMTP_PORT: "1025",
     SMTP_SECURE: "false",
@@ -69,6 +70,7 @@ describe("loadConfig", () => {
       expect(config.nodeEnvironment).toBe(valuesByEnvironment[appEnvironment]);
       expect(config.port).toBe(appEnvironment === "dev" ? 3000 : 8080);
       expect(config.smtpSecure).toBe(false);
+      expect(config.featuredProductIds).toEqual([1, 2, 3, 4, 5]);
     },
   );
 
@@ -124,6 +126,17 @@ describe("loadConfig", () => {
       "SMTP_USER and SMTP_PASSWORD must either both be set or both be empty.",
     );
   });
+
+  it.each(["1,2,3,4", "1,2,3,4,4", "1,2,3,4,invalid"])(
+    "rejects invalid featured product IDs: %s",
+    (value) => {
+      writeEnvironment("dev", { FEATURED_PRODUCT_IDS: value });
+
+      expect(() => loadConfig({ APP_ENV: "dev" }, directory)).toThrow(
+        "FEATURED_PRODUCT_IDS must contain exactly five distinct positive integers.",
+      );
+    },
+  );
 
   it("rejects a non-HTTP product source URL", () => {
     writeEnvironment("dev", { FAKE_STORE_BASE_URL: "file:///tmp/products.json" });

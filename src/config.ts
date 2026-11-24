@@ -12,6 +12,7 @@ export interface AppConfig {
   readonly port: number;
   readonly fakeStoreBaseUrl: string;
   readonly fakeStoreTimeoutMs: number;
+  readonly featuredProductIds: readonly number[];
   readonly smtpHost: string;
   readonly smtpPort: number;
   readonly smtpSecure: boolean;
@@ -63,6 +64,22 @@ function readPositiveInteger(value: string | undefined, name: string, maximum: n
     throw new ConfigError(`${name} must be a positive integer no greater than ${maximum}.`);
   }
   return parsed;
+}
+
+function readFeaturedProductIds(value: string | undefined): readonly number[] {
+  const ids = readRequiredString(value, "FEATURED_PRODUCT_IDS")
+    .split(",")
+    .map((candidate) => Number(candidate.trim()));
+
+  if (
+    ids.length !== 5 ||
+    ids.some((id) => !Number.isSafeInteger(id) || id <= 0) ||
+    new Set(ids).size !== 5
+  ) {
+    throw new ConfigError("FEATURED_PRODUCT_IDS must contain exactly five distinct positive integers.");
+  }
+
+  return ids;
 }
 
 function readNodeEnvironment(
@@ -151,6 +168,7 @@ export function loadConfig(
       "FAKE_STORE_TIMEOUT_MS",
       Number.MAX_SAFE_INTEGER,
     ),
+    featuredProductIds: readFeaturedProductIds(environment.FEATURED_PRODUCT_IDS),
     smtpHost: readRequiredString(environment.SMTP_HOST, "SMTP_HOST"),
     smtpPort: readPositiveInteger(environment.SMTP_PORT, "SMTP_PORT", 65_535),
     smtpSecure: readBoolean(environment.SMTP_SECURE, "SMTP_SECURE"),

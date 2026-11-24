@@ -2,9 +2,13 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 
 import { createApp } from "../../src/app.js";
+import { CatalogueService } from "../../src/services/catalogue-service.js";
+import { FakeProductProvider } from "../fakes/fake-product-provider.js";
 
 describe("application foundation", () => {
-  const app = createApp();
+  const app = createApp({
+    catalogueService: new CatalogueService(new FakeProductProvider([]), [1, 2, 3, 4, 5]),
+  });
 
   it("reports health without calling external dependencies", async () => {
     const response = await request(app).get("/health");

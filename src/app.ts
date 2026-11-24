@@ -1,8 +1,14 @@
 import express, { type Express } from "express";
 
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
+import { createCatalogueRouter } from "./routes/catalogue.js";
+import type { CatalogueService } from "./services/catalogue-service.js";
 
-export function createApp(): Express {
+export interface AppDependencies {
+  readonly catalogueService: CatalogueService;
+}
+
+export function createApp(dependencies: AppDependencies): Express {
   const app = express();
 
   app.disable("x-powered-by");
@@ -11,6 +17,8 @@ export function createApp(): Express {
   app.get("/health", (_request, response) => {
     response.status(200).json({ status: "ok" });
   });
+
+  app.use("/api/v1", createCatalogueRouter(dependencies.catalogueService));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -5,11 +5,11 @@
 | Decision | Reason and trade-off |
 | --- | --- |
 | Express with TypeScript, organized by route/service/adapter | Familiar and quick for the time-box while keeping business rules separate from I/O. A larger clean-architecture or DI framework would add ceremony without useful scope. |
-| `ProductSource` and `EmailProvider` ports | Fake Store and Nodemailer/Mailpit can change independently; services and route tests use in-memory fakes. |
+| `ProductProvider` and `EmailProvider` ports | Fake Store and Nodemailer/Mailpit can change independently; services and route tests use in-memory fakes. |
 | Node's built-in `fetch` for Fake Store | Avoids an HTTP dependency. The adapter checks status, timeout/abort, and runtime response shape before mapping to the domain model. |
 | A backend-owned product DTO | The iOS contract stays stable. `image` becomes `imageUrl`, and undocumented upstream `rating` is represented as nullable rather than assumed present. |
-| Compute discovery features in memory | The upstream dataset is currently 20 products, so local search, featured selection, and category aggregation are simpler and deterministic. This will not scale to a large catalog. |
-| Featured means the five highest-rated products | Sort by rating rate, then review count, then ID and return exactly five. This interprets “chosen 5 products to be top rated” from available data; it is not personalized or editorial merchandising. |
+| Compute discovery features in memory | The upstream dataset is currently 20 products, so local search and category ranking are simpler and deterministic. This will not scale to a large catalog. |
+| Featured products are configured IDs | `FEATURED_PRODUCT_IDS` contains exactly five distinct positive IDs. Home preserves configured order and fails explicitly if an ID is absent, supporting deliberate merchandising without persistence. |
 | A category has two top-rated products | Sort products within the selected category using the same rating/count/ID rule; expose the first two as `topRated` and the remainder as `additional`. Two ensures the current four-product categories still satisfy both parts of the acceptance criterion. |
 | Nodemailer over SMTP, Mailpit locally | Matches the required stack and needs no account. The endpoint waits for SMTP acceptance, returns `200`, and lets the client show “Thank you”; acceptance is not proof that a person read the email. |
 | No persistence | Enquiries are email-only and product data remains upstream-owned. Adding a database is not justified by the challenge. |
@@ -19,7 +19,8 @@
 - The supplied OpenAPI 3.1 document defines product `id`, `title`, `price`, `description`, `category`, and `image`, but not `rating`.
 - The captured `GET /products` and `GET /products/1` responses contain `rating.rate` and `rating.count`; the backend accepts them only after runtime validation and emits `rating: null` when unavailable.
 - Captured POST/PUT responses echo changes, but a later GET returns the original product. Fake Store writes are therefore treated as simulated/non-persistent and are not exposed by ProductsBackend.
-- Search is substring-based and locale-insensitive after trimming/lowercasing. It is sufficient for 20 records; typo tolerance, stemming, relevance scoring, and full-text infrastructure are out of scope.
+- Search is a title/description substring match, case-insensitive after trimming/lowercasing. It is sufficient for 20 records; typo tolerance, stemming, relevance scoring, and full-text infrastructure are out of scope.
+- Fake Store payloads are untrusted. Required product fields are validated; a missing or malformed rating becomes `null`; timeouts, network/HTTP failures, invalid JSON/shapes, and product-not-found remain distinct provider outcomes.
 - Prices and category labels are passed through from the source. Currency is assumed to be USD for UI presentation, but currency conversion and localization are not backend responsibilities in this challenge.
 - “Contact details” means a required name and email address; a phone number is not required. The enquiry message is optional because product identity is already supplied by `productId`.
 - One configured recipient receives all enquiries. The sender address is server-controlled; the user's address is set as `replyTo` to avoid spoofing the SMTP envelope sender.
